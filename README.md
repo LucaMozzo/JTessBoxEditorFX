@@ -14,5 +14,6 @@ JTessBoxEditorFX is released and distributed under the [Apache License, v2.0](ht
 - Full box editor
 - Automatic training
 
-## Improvements from original version
-- ![Improvement Type](https://img.shields.io/badge/improvement-fixed-green.svg?style=flat-square) Prompt to save changes in box editor would discard the changes in any case
+## Improvements
+- ![Improvement Type](https://img.shields.io/badge/improvement-fix-yellow.svg?style=flat-square) Prompt to save changes in box editor discarded the changes regardless of user input
+- ![Improvement Type](https://img.shields.io/badge/improvement-feature-green.svg?style=flat-square) When opening an image with no .box file in the box editor, it now asks if you want it to be automatically generated
