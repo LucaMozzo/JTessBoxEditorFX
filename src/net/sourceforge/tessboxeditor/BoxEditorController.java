@@ -15,6 +15,7 @@
  */
 package net.sourceforge.tessboxeditor;
 
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -56,6 +57,14 @@ import javafx.geometry.Rectangle2D;
 import javafx.scene.Cursor;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.image.Image;
@@ -461,7 +470,7 @@ public class BoxEditorController implements Initializable {
                 return;
             }
 
-            if (boxFile != null) {
+            if (boxFile.exists()) {
                 btnReload.setDisable(true);
                 btnReload.getScene().setCursor(Cursor.WAIT);
 
@@ -486,6 +495,18 @@ public class BoxEditorController implements Initializable {
                 };
 
                 new Thread(loadWorker).start();
+            }
+            else{
+                //TODO show message
+                Alert alert = new Alert(AlertType.INFORMATION, "No .box file found for the selected image.\n\nDo you want to generate one automatically?", ButtonType.YES, ButtonType.NO);
+                alert.setTitle("BOX file generation");
+                alert.setHeaderText(null);
+                Optional<ButtonType> result = alert.showAndWait();
+                if (result.get() == ButtonType.YES) {
+                    System.out.print("AAA");
+                }
+                else
+                    System.out.print("BBB");
             }
         } else if (event.getSource() == btnConvert) {
             String curChar = this.tfCharacter.getText();
@@ -744,7 +765,7 @@ public class BoxEditorController implements Initializable {
      */
     protected boolean promptToDiscardChanges() {
         if (!boxChangedProp.get()) {
-            return false;
+            return true;
         }
 
         Alert alert = new Alert(AlertType.CONFIRMATION, JTessBoxEditor.APP_NAME, ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
