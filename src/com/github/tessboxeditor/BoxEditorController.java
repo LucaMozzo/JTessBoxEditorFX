@@ -76,9 +76,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.DragEvent;
-import javafx.scene.input.Dragboard;
-import javafx.scene.input.TransferMode;
+import javafx.scene.input.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -237,7 +235,8 @@ public class BoxEditorController implements Initializable {
         HBox.setHgrow(rgn2, Priority.ALWAYS);
         HBox.setHgrow(rgn3, Priority.ALWAYS);
 
-        tfCharacter.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
+        //TODO test edit
+        /*tfCharacter.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
             if (!isNowFocused && !this.btnConvert.isFocused()) {
                 if (boxes != null && boxes.getSelectedBoxes().size() == 1) {
                     String str = tfCharacter.getText();
@@ -246,8 +245,15 @@ public class BoxEditorController implements Initializable {
                     tfCodepointValue.setText(Utils.toHex(str));
                 }
             }
+        });*/
+        tfCharacter.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (boxes != null && boxes.getSelectedBoxes().size() == 1) {
+                String str = tfCharacter.getText();
+                boxes.getSelectedBoxes().get(0).setCharacter(str);
+                tfChar.setText(str);
+                tfCodepointValue.setText(Utils.toHex(str));
+            }
         });
-
         tableView.setRowFactory(tv -> {
             TableRow<TessBox> row = new TableRow<>();
             row.styleProperty().bind(style);
@@ -406,6 +412,95 @@ public class BoxEditorController implements Initializable {
 
         this.spinnerH.valueProperty().addListener((obs, oldValue, newValue) -> {
             valuesChanged("H", newValue);
+        });
+        //TODO here
+        spBoxImage.addEventHandler(KeyEvent.KEY_RELEASED, new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent event) {
+                if(event.getCode() == KeyCode.LEFT) {
+                    spinnerX.decrement();
+                    valuesChanged("X", spinnerX.getValue());
+                }
+                else if(event.getCode() == KeyCode.RIGHT){
+                    spinnerX.increment();
+                    valuesChanged("X", spinnerX.getValue());
+                }
+                else if(event.getCode() == KeyCode.NUMPAD9){
+                    spinnerY.decrement();
+                    valuesChanged("Y", spinnerY.getValue());
+                }
+                else if(event.getCode() == KeyCode.NUMPAD3){
+                    spinnerY.increment();
+                    valuesChanged("Y", spinnerY.getValue());
+                }
+                else if(event.getCode() == KeyCode.NUMPAD8){
+                    spinnerH.increment();
+                    valuesChanged("H", spinnerH.getValue());
+                }
+                else if(event.getCode() == KeyCode.NUMPAD2){
+                    spinnerH.decrement();
+                    valuesChanged("H", spinnerH.getValue());
+                }
+                else if(event.getCode() == KeyCode.NUMPAD4){
+                    spinnerW.decrement();
+                    valuesChanged("W", spinnerW.getValue());
+                }
+                else if(event.getCode() == KeyCode.NUMPAD6){
+                    spinnerW.increment();
+                    valuesChanged("W", spinnerW.getValue());
+                }
+                else if(event.getCode() == KeyCode.SPACE){
+                    int selectedIndex = tableView.getSelectionModel().getSelectedIndex();
+                    if (selectedIndex != -1) {
+                        if (!imageCanvas.isBoxClickAction()) { // not from image block click
+                            boxes.deselectAll();
+                        }
+                        ObservableList<TessBox> boxesOfCurPage = boxes.toList(); // boxes of current page
+                        for (int index : tableView.getSelectionModel().getSelectedIndices()) {
+                            TessBox box = boxesOfCurPage.get(index);
+                            // select box
+                            box.setSelected(true);
+                            scrollRectToVisible(scrollPaneImage, box.getRect());
+                        }
+                        imageCanvas.paint();
+
+                        if (tableView.getSelectionModel().getSelectedIndices().size() == 1) {
+                            enableReadout(true);
+                            // update Character field
+                            String str = newSelection.getCharacter();
+                            tfCharacter.setText(str);
+                            tfChar.setText(str);
+                            tfCodepointValue.setText(Utils.toHex(str));
+                            // mark this as table action event to prevent cyclic firing of events by spinners or box pagination
+                            tableSelectAction = true;
+                            paginationBox.setDisable(false);
+                            paginationBox.setCurrentPageIndex(selectedIndex);
+                            // update subimage
+                            TessBox curBox = boxesOfCurPage.get(selectedIndex);
+                            Rectangle2D rect = curBox.getRect();
+                            updateSubimage(rect);
+
+                            // update spinners
+                            spinnerX.getValueFactory().setValue((int) rect.getMinX());
+                            spinnerY.getValueFactory().setValue((int) rect.getMinY());
+                            spinnerW.getValueFactory().setValue((int) rect.getWidth());
+                            spinnerH.getValueFactory().setValue((int) rect.getHeight());
+                            tableSelectAction = false;
+                        } else {
+                            enableReadout(false);
+                            resetReadout();
+                        }
+                    } else {
+                        boxes.deselectAll();
+                        imageCanvas.paint();
+                        enableReadout(false);
+                        tableSelectAction = true;
+                        resetReadout();
+                        tableSelectAction = false;
+                        paginationBox.setDisable(true);
+                    }
+                }
+            }
         });
 
         this.spnMargins.valueProperty().addListener((obs, oldValue, newValue) -> {
